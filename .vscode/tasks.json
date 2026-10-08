@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "AnyPS5: build dev",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/build.sh dev",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "AnyPS5: build release",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/build.sh release",
+      "group": "build",
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "AnyPS5: tests",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/build.sh dev --test",
+      "group": "test",
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "AnyPS5: préparer le jeu",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/run-game.sh '${input:gameDir}' --prepare-only --out '${workspaceFolder}/games/debug'",
+      "dependsOn": "AnyPS5: build dev",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "gameDir",
+      "type": "promptString",
+      "description": "Dossier du jeu (contient eboot.bin déchiffré et sce_module/)"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "AnyPS5: déboguer un jeu (gdb)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/games/debug/app.elf",
+      "cwd": "${workspaceFolder}/games/debug",
+      "MIMode": "gdb",
+      "preLaunchTask": "AnyPS5: préparer le jeu",
+      "setupCommands": [
+        { "text": "source ${workspaceFolder}/scripts/gdbinit", "ignoreFailures": true },
+        { "text": "-enable-pretty-printing", "ignoreFailures": true }
+      ]
+    },
+    {
+      "name": "AnyPS5: déboguer un jeu + arrêt sur exception",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/games/debug/app.elf",
+      "cwd": "${workspaceFolder}/games/debug",
+      "MIMode": "gdb",
+      "preLaunchTask": "AnyPS5: préparer le jeu",
+      "setupCommands": [
+        { "text": "source ${workspaceFolder}/scripts/gdbinit", "ignoreFailures": true },
+        { "text": "-enable-pretty-printing", "ignoreFailures": true },
+        { "text": "catch throw std::runtime_error" }
+      ]
+    },
+    {
+      "name": "AnyPS5: déboguer un test",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/build/current/tests/${input:testName}",
+      "cwd": "${workspaceFolder}/build/current",
+      "MIMode": "gdb",
+      "preLaunchTask": "AnyPS5: build dev",
+      "setupCommands": [
+        { "text": "source ${workspaceFolder}/scripts/gdbinit", "ignoreFailures": true }
+      ]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "testName",
+      "type": "promptString",
+      "description": "Nom de l'exécutable de test (ex. guest_rtc_tests)",
+      "default": "guest_rtc_tests"
+    }
+  ]
+}

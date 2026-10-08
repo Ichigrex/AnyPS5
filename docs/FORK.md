@@ -10,17 +10,57 @@ Fork privé de [boykopovar/AnyPS5](https://github.com/boykopovar/AnyPS5). Le dé
 
 Le comportement de `sceRtcCompareTick` reprend la convention des bibliothèques RTC de la PSP et de la PS4 (et de fpPS4). Il n'a pas été vérifié sur une vraie console.
 
-## Compiler et tester
+## Compiler rapidement
 
-Build complet (voir [BUILD.md](dev/BUILD.md)) :
+Première fois sur une machine Ubuntu/Debian (installe les dépendances, gdb et ccache) :
 
 ```sh
-git submodule update --init --recursive
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
-cmake --build build
-cmake --build build --target libs
-ctest --test-dir build --output-on-failure
+scripts/build.sh dev --deps
 ```
+
+Ensuite :
+
+```sh
+scripts/build.sh            # build "dev" : optimisé + symboles de debug (recommandé)
+scripts/build.sh release    # build pour jouer
+scripts/build.sh debug      # -O0, pas à pas fiable mais jeux lents
+scripts/build.sh dev --test # compile puis lance tous les tests
+scripts/build.sh dev --clean
+```
+
+Chaque mode a son dossier (`build/release`, `build/dev`, `build/debug`) ; `build/current` pointe sur le dernier compilé. ccache est utilisé s'il est installé : les recompilations suivantes sont beaucoup plus rapides.
+
+Les mêmes modes existent en presets CMake (`CMakePresets.json`), utilisables directement (`cmake --preset dev`) ou depuis VS Code / CLion.
+
+## Tester un jeu
+
+Le jeu doit être un dump avec `eboot.bin` **déchiffré** (ELF) et ses modules dans `sce_module/` :
+
+```sh
+scripts/run-game.sh /chemin/vers/PPSA01234
+```
+
+Le script :
+1. convertit `eboot.bin` avec le relinker (ajoute `--to-intel` automatiquement sur un processeur Intel) ;
+2. prépare `games/<nom_du_jeu>/` : `app.elf`, `libs/` (lien vers les `.prx` compilés), `app0/` (liens vers les fichiers du jeu, sans copie) ;
+3. lance le jeu et enregistre la sortie dans `games/<nom_du_jeu>/last-run.log`.
+
+La conversion n'est refaite que si `eboot.bin` ou le relinker ont changé (`--relink` pour forcer). Les arguments après `--` sont passés au jeu. Variables utiles : `ANYPS5_GPU=<nom>` pour choisir le GPU, `ANYPS5_SYSTEM_FONTS=<dossier>` pour les polices (voir [USAGE.md](user/USAGE.md)).
+
+## Déboguer
+
+En ligne de commande :
+
+```sh
+scripts/run-game.sh /chemin/vers/PPSA01234 --gdb
+scripts/run-game.sh /chemin/vers/PPSA01234 --gdb --catch-throw
+```
+
+`--catch-throw` arrête gdb à l'endroit exact où une `std::runtime_error` est levée (fonction non implémentée, état non supporté) : `bt` donne alors la pile d'appels complète. Sans cette option, gdb s'arrête sur les plantages (SIGSEGV, SIGABRT). Le build `dev` suffit le plus souvent ; prendre `debug` pour suivre les variables pas à pas.
+
+Dans VS Code (extension C/C++ de Microsoft) :
+- `Ctrl+Shift+B` : build dev ;
+- onglet *Run and Debug* : « déboguer un jeu (gdb) », « déboguer un jeu + arrêt sur exception » ou « déboguer un test ». Le chemin du jeu est demandé au lancement ; il est préparé dans `games/debug/`.
 
 Test rapide de libSceRtc seul, sans configurer tout le projet :
 

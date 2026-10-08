@@ -1,0 +1,5 @@
+{
+  "cmake.useCMakePresets": "always",
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/build/current/compile_commands.json",
+  "files.exclude": { "build/**": true }
+}
