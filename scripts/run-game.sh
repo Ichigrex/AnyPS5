@@ -79,7 +79,8 @@ fi
 
 if [[ $CHECK -eq 1 ]] && command -v python3 >/dev/null; then
     python3 "$ROOT/scripts/check-game.py" "$ELF" --build "$BUILD" > "$OUT/check.txt" 2>&1 || true
-    sed -n 2,8p "$OUT/check.txt"
+    sed -n '1,/^$/p' "$OUT/check.txt"
+    tail -n 1 "$OUT/check.txt"
     echo "  (détail : $OUT/check.txt)"
 fi
 

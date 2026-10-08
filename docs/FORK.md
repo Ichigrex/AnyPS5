@@ -51,21 +51,21 @@ La conversion n'est refaite que si `eboot.bin` ou le relinker ont changé (`--re
 ## Diagnostiquer un jeu avant de le lancer
 
 ```sh
-scripts/check-game.py /chemin/vers/PPSA01234            # résumé + liste des problèmes
-scripts/check-game.py /chemin/vers/PPSA01234 --names    # nom des fonctions absentes (télécharge la base de NID)
-scripts/check-game.py /chemin/vers/PPSA01234 --json     # pour un autre script
+scripts/check-game.py /chemin/vers/PPSA01234             # résumé + liste des problèmes
+scripts/check-game.py /chemin/vers/PPSA01234 --names     # nom des fonctions absentes (télécharge la base de NID)
+scripts/check-game.py /chemin/vers/PPSA01234 --json r.json
 ```
 
-Chaque fonction système importée par `eboot.bin` est classée :
+Raccourci vers `tools/import_audit.py` du projet d'origine (voir [USAGE.md](user/USAGE.md#import-audit)) : il convertit `eboot.bin` avec `relinker --registry` dans un dossier temporaire, puis classe chaque fonction système importée :
 
-| État        | Conséquence                                                              |
-|-------------|---------------------------------------------------------------------------|
-| absente     | le jeu refuse de démarrer : il faut l'ajouter dans `core/libs/prx`         |
-| bouchon     | erreur (`std::runtime_error`) dès que le jeu l'appelle                     |
-| partielle   | erreur seulement dans certains cas (un `if` avant `NotImplemented`)        |
-| implémentée | OK                                                                        |
+| Classe        | Conséquence                                                             |
+|---------------|--------------------------------------------------------------------------|
+| `absent`      | le jeu refuse de démarrer : il faut l'ajouter dans `core/libs/prx`        |
+| `stub`        | erreur (`std::runtime_error`) dès que le jeu l'appelle                    |
+| `module`      | fournie par un module du jeu (`sce_module/`), non vérifiée                 |
+| `implemented` | OK                                                                       |
 
-Le fichier source de chaque bouchon est indiqué : c'est la liste de travail pour faire tourner le jeu. `run-game.sh` lance ce diagnostic automatiquement (résultat complet dans `games/<nom_du_jeu>/check.txt`, `--no-check` pour le désactiver). Limite : seuls les imports de `eboot.bin` sont analysés, pas ceux des modules de `sce_module/`.
+La liste des `stub` et `absent` est la liste de travail pour faire tourner le jeu. `run-game.sh` lance ce diagnostic automatiquement (résultat complet dans `games/<nom_du_jeu>/check.txt`, `--no-check` pour le désactiver). Limite : seuls les imports de `eboot.bin` sont analysés, pas ceux des modules du jeu.
 
 ## Déboguer
 
