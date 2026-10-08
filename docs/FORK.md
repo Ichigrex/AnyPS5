@@ -111,7 +111,7 @@ scripts/build.sh                  # puis recompiler
 
 ## Problèmes connus
 
-- `guest_sce_net` échoue sur une machine sans IPv6 (pas de `/proc/net/if_inet6`) : le test crée un socket IPv6. Ce n'est pas un bug du code. Les 461 autres tests passent (build `dev`, Ubuntu 24.04, GCC 13).
+- `guest_sce_net` échoue sur une machine sans IPv6 (pas de `/proc/net/if_inet6`) : le test crée un socket IPv6. Ce n'est pas un bug du code. Tous les autres tests passent (482 sur 483 au 8 octobre 2026, build `dev`, Ubuntu 24.04, GCC 13).
 - Le relinker ne crée pas le dossier de sortie : il doit exister avant la conversion (`run-game.sh` s'en charge).
 
 ## Pistes pour la suite
