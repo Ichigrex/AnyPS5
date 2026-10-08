@@ -20,8 +20,34 @@ env:
     -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
 
 jobs:
+  changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      relinker: ${{ steps.filter.outputs.relinker }}
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          predicate-quantifier: some-with-excludes
+          filters: |
+            relinker:
+              - 'core/relinker/**'
+              - 'core/libs/prx/libc/src/specifics/windows/**'
+              - 'CMakeLists.txt'
+              - '.github/workflows/build.yml'
+            code:
+              - '**'
+              - '!**/*.md'
+              - '!docs/**'
+
   relinker:
-    name: Relinker (${{ matrix.os }})
+    needs: changes
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.relinker == 'true') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     strategy:
@@ -59,6 +85,8 @@ jobs:
       - run: ctest --test-dir build-relinker --output-on-failure --timeout 120
 
   linux:
+    needs: changes
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.code == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -77,12 +105,21 @@ jobs:
         run: python3 tools/check_test_registration.py build
       - run: cmake --build build
       - run: cmake --build build --target libs
-      - run: ctest --test-dir build --output-on-failure --timeout 120 --repeat until-fail:3
+      - run: ctest --test-dir build --output-on-failure --timeout 120 --repeat until-fail:3 --parallel 4 --output-log ctest.log
         env:
           ANYPS5_REQUIRE_VULKAN: 1
           GALLIUM_OVERRIDE_CPU_CAPS: avx
+      - name: Report tests slower than 30 s
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          [ -f ctest.log ] || exit 0
+          awk '/Test +#[0-9]+: / && $NF == "sec" { for (i = 1; i <= NF; i++) if ($i ~ /^#[0-9]+:$/) name = $(i + 1); t = $(NF - 1) + 0; if (t > max[name]) max[name] = t }
+            END { for (name in max) if (max[name] > 30) printf "::warning title=Slow test::%s took %.1f s on %s; tests must finish in 30 s (CONTRIBUTING.md)\n", name, max[name], ENVIRON["RUNNER_OS"] }' ctest.log
 
   windows:
+    needs: changes
+    if: ${{ !cancelled() && (needs.changes.result != 'success' || needs.changes.outputs.code == 'true') }}
     runs-on: windows-latest
     timeout-minutes: 45
     env:
@@ -121,4 +158,11 @@ jobs:
       - shell: cmd
         run: cmake --build build --target libs
       - shell: cmd
-        run: ctest --test-dir build --output-on-failure --timeout 120 --repeat until-fail:3
+        run: ctest --test-dir build --output-on-failure --timeout 120 --repeat until-fail:3 --parallel 4 --output-log ctest.log
+      - name: Report tests slower than 30 s
+        if: ${{ !cancelled() }}
+        shell: bash
+        run: |
+          [ -f ctest.log ] || exit 0
+          awk '/Test +#[0-9]+: / && $NF == "sec" { for (i = 1; i <= NF; i++) if ($i ~ /^#[0-9]+:$/) name = $(i + 1); t = $(NF - 1) + 0; if (t > max[name]) max[name] = t }
+            END { for (name in max) if (max[name] > 30) printf "::warning title=Slow test::%s took %.1f s on %s; tests must finish in 30 s (CONTRIBUTING.md)\n", name, max[name], ENVIRON["RUNNER_OS"] }' ctest.log

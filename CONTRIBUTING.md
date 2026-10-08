@@ -13,6 +13,7 @@
 - The relinker uses only the C++20 standard library.
 - Third-party code is added as a submodule under `3rdparty/` and built from source, not found on the system.
 - Don't add tests that only check that a symbol is exported: a missing export already fails at startup.
+- Each test finishes in 30 s on the CI runners, Vulkan tests included (Linux runs them on lavapipe), counting the first run with no shader cache. ctest runs in parallel there, so a slow test competes for the cores and times out on some runs and not others. Split or shrink a test that gets close instead of raising its timeout. CI reports every test over 30 s as a warning on the pull request.
 
 ## Build and test
 

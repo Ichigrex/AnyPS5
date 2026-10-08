@@ -12,9 +12,9 @@ class TranslationContext {
 public:
     TranslationContext(IrProgram& program, IrBlock& block, std::uint32_t vectorLimit);
 
+    void TranslateEmbeddedFetch(const RdnaInstruction& instruction, std::uint32_t attribute, std::uint32_t components);
     void TranslateInstruction(const RdnaInstruction& instruction);
     void SetPixelInput(const ShaderPixelInputInfo* info, bool barycentricEnabled) { pixelInput = info; fragmentShaderBarycentricEnabled = barycentricEnabled; }
-    void TranslateEmbeddedFetch(const RdnaInstruction& instruction, std::uint32_t attribute, std::uint32_t componentCount, const ShaderBufferResource& resource);
     void AddBranchCondition(const BasicBlock& source, BlockInfo& info);
     void TranslateCodeTableLoad(const RdnaInstruction& instruction, const ControlFlowGraph::CodeTableLoad& table);
 
@@ -276,6 +276,7 @@ private:
     void sTtracedata();
     void sInstPrefetch();
     void sGetpcB64(const RdnaInstruction& inst);
+    void sSwappcB64(const RdnaInstruction& inst);
     void sCselectB32(const RdnaInstruction& inst);
     void scalarSelect64(const RdnaInstruction& inst, const RdnaOperand& falseSource);
     void movB32(const RdnaInstruction& inst, bool applyFloatModifiers);
