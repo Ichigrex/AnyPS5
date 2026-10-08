@@ -93,7 +93,9 @@ g++ -std=c++20 -O2 -Icore/libs core/libs/tests/GuestRtc.cpp -L/tmp/rtc -lSceRtc 
 
 ## Rester à jour avec l'upstream
 
-Automatique : la GitHub Action `Sync upstream` (`.github/workflows/sync-upstream.yml`) fusionne chaque jour `boykopovar/AnyPS5` `main` dans `dev`. Elle peut aussi être lancée à la main depuis l'onglet *Actions* du fork. En cas de conflit elle échoue sans rien pousser : il faut alors fusionner en local.
+Automatique : la GitHub Action `Sync upstream` (`.github/workflows/sync-upstream.yml`) fusionne chaque jour `boykopovar/AnyPS5` `main` dans `dev`. En cas de conflit elle échoue sans rien pousser : il faut alors fusionner en local. Pour qu'elle tourne, deux réglages sont nécessaires sur GitHub :
+1. activer les Actions du fork (onglet *Actions*, bouton d'activation) ;
+2. GitHub ne lance les tâches planifiées que depuis la branche par défaut : passer `dev` en branche par défaut (*Settings > General > Default branch*) ou copier ce fichier sur `main`.
 
 En local :
 
@@ -105,7 +107,7 @@ scripts/build.sh                  # puis recompiler
 
 ## Problèmes connus
 
-- `guest_sce_net` échoue sur une machine sans IPv6 (pas de `/proc/net/if_inet6`) : le test crée un socket IPv6. Ce n'est pas un bug du code. Les 460 autres tests passent (build `dev`, Ubuntu 24.04, GCC 13).
+- `guest_sce_net` échoue sur une machine sans IPv6 (pas de `/proc/net/if_inet6`) : le test crée un socket IPv6. Ce n'est pas un bug du code. Les 461 autres tests passent (build `dev`, Ubuntu 24.04, GCC 13).
 - Le relinker ne crée pas le dossier de sortie : il doit exister avant la conversion (`run-game.sh` s'en charge).
 
 ## Pistes pour la suite
