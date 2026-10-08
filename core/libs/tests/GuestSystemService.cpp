@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <ctime>
 #include <stdexcept>
 
 extern "C" int APS5_VABI sceSystemServiceGetHdrToneMapLuminance(SystemServiceHdrToneMapLuminance* luminance);
@@ -31,6 +32,19 @@ int LanguageFor(const char* value) {
     int language = -1;
     Require(sceSystemServiceParamGetInt(SYSTEM_SERVICE_PARAM_ID_LANG, &language) == SYSTEM_SERVICE_OK);
     return language;
+}
+
+int ParamFor(const char* zone, int paramId) {
+#ifdef _WIN32
+    _putenv_s("TZ", zone);
+    _tzset();
+#else
+    setenv("TZ", zone, 1);
+    tzset();
+#endif
+    int value = -1;
+    Require(sceSystemServiceParamGetInt(paramId, &value) == SYSTEM_SERVICE_OK);
+    return value;
 }
 
 bool LanguageThrows(const char* value) {
@@ -82,4 +96,13 @@ int main() {
     Require(LanguageFor("pt-BR") == 17 && LanguageFor("es-419") == 20 && LanguageFor("uk") == 30);
     Require(LanguageFor("4") == 4 && LanguageFor("30") == 30);
     Require(LanguageThrows("klingon") && LanguageThrows("31") && LanguageThrows("-1") && LanguageThrows("2x"));
+
+    Require(ParamFor("UTC0", SYSTEM_SERVICE_PARAM_ID_TIME_ZONE) == 0 && ParamFor("UTC0", SYSTEM_SERVICE_PARAM_ID_SUMMERTIME) == 0);
+    Require(ParamFor("XXX-5:30", SYSTEM_SERVICE_PARAM_ID_TIME_ZONE) == 330);
+    Require(ParamFor("XXX+3", SYSTEM_SERVICE_PARAM_ID_TIME_ZONE) == -180);
+    Require(ParamFor("XXX+3", SYSTEM_SERVICE_PARAM_ID_SUMMERTIME) == 0);
+#ifndef _WIN32
+    Require(ParamFor("STD-1DST,J1,J365/25", SYSTEM_SERVICE_PARAM_ID_TIME_ZONE) == 60);
+    Require(ParamFor("STD-1DST,J1,J365/25", SYSTEM_SERVICE_PARAM_ID_SUMMERTIME) == 1);
+#endif
 }

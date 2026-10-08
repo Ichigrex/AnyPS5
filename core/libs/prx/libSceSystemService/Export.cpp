@@ -1,6 +1,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <ctime>
 #include <cstdlib>
 #include <stdexcept>
 #include <string>
@@ -46,6 +47,30 @@ int SystemLanguage() {
     const long id = std::strtol(value, &end, 10);
     if (*end == '\0' && id >= 0 && id <= 30) return static_cast<int>(id);
     throw std::runtime_error(std::string("ANYPS5_LANGUAGE: unknown language '") + value + "'");
+}
+
+struct HostTimeZone {
+    int standardOffsetMinutes;
+    int summertime;
+};
+
+HostTimeZone CurrentTimeZone() {
+    const std::time_t now = std::time(nullptr);
+    std::tm local{};
+    std::tm utc{};
+#ifdef _WIN32
+    if (localtime_s(&local, &now) != 0 || gmtime_s(&utc, &now) != 0) return {};
+#else
+    if (localtime_r(&now, &local) == nullptr || gmtime_r(&now, &utc) == nullptr) return {};
+#endif
+    const auto days = [](const std::tm& time) {
+        const long long year = time.tm_year + 1900LL - 1;
+        return year * 365 + year / 4 - year / 100 + year / 400 + time.tm_yday;
+    };
+    const long long localMinutes = days(local) * 1440 + local.tm_hour * 60 + local.tm_min;
+    const long long utcMinutes = days(utc) * 1440 + utc.tm_hour * 60 + utc.tm_min;
+    const int summertime = local.tm_isdst > 0 ? 1 : 0;
+    return {static_cast<int>(localMinutes - utcMinutes) - summertime * 60, summertime};
 }
 
 }
@@ -114,8 +139,8 @@ int APS5_VABI sceSystemServiceParamGetInt(int paramId, int* value) {
   case SYSTEM_SERVICE_PARAM_ID_LANG: *value = SystemLanguage(); break;
   case SYSTEM_SERVICE_PARAM_ID_DATE_FORMAT: *value = SYSTEM_SERVICE_PARAM_DATE_FORMAT_DDMMYYYY; break;
   case SYSTEM_SERVICE_PARAM_ID_TIME_FORMAT: *value = SYSTEM_SERVICE_PARAM_TIME_FORMAT_24HOUR; break;
-  case SYSTEM_SERVICE_PARAM_ID_TIME_ZONE: *value = 0; break;
-  case SYSTEM_SERVICE_PARAM_ID_SUMMERTIME: *value = 0; break;
+  case SYSTEM_SERVICE_PARAM_ID_TIME_ZONE: *value = CurrentTimeZone().standardOffsetMinutes; break;
+  case SYSTEM_SERVICE_PARAM_ID_SUMMERTIME: *value = CurrentTimeZone().summertime; break;
   case SYSTEM_SERVICE_PARAM_ID_GAME_PARENTAL_LEVEL: *value = SYSTEM_SERVICE_PARAM_GAME_PARENTAL_OFF; break;
   case SYSTEM_SERVICE_PARAM_ID_ENTER_BUTTON_ASSIGN: *value = SYSTEM_SERVICE_PARAM_ENTER_BUTTON_CROSS; break;
   default: *value = 0; break;

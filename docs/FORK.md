@@ -9,6 +9,7 @@ Fork privé de [boykopovar/AnyPS5](https://github.com/boykopovar/AnyPS5). Le dé
 | libSceRtc    | `sceRtcCompareTick` | Compare deux ticks : renvoie `-1` (plus tôt), `0` (égal) ou `1` (plus tard), et `0x80B50002` (`INVALID_POINTER`) si un pointeur est nul. |
 | libkernel    | `sceKernelAioPollRequests` | État de plusieurs requêtes AIO sans attendre (version groupée de `sceKernelAioPollRequest`). |
 | libSceSystemService | langue système | Variable `ANYPS5_LANGUAGE` (`fr`, `fr-CA`, `en-GB`, `ja`, `de`… ou l'identifiant 0-30). Défaut : anglais US, comme l'upstream. |
+| libSceSystemService | fuseau horaire | `TIME_ZONE` et `SUMMERTIME` reprennent le fuseau du PC (variable `TZ` sous Linux), comme libSceRtc. L'upstream renvoie toujours UTC sans heure d'été. |
 
 Le comportement de `sceRtcCompareTick` reprend la convention des bibliothèques RTC de la PSP et de la PS4 (et de fpPS4). Il n'a pas été vérifié sur une vraie console.
 
