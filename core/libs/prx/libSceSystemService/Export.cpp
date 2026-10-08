@@ -2,10 +2,53 @@
 #include <cstdint>
 #include <cstring>
 #include <cstdlib>
+#include <stdexcept>
+#include <string>
 #include "prx/libc/include/Shutdown.hpp"
 #include "SceTypes.hpp"
 #include "prx/libc/include/General.hpp"
 #include "prx/libSceSystemService/SystemService.hpp"
+
+namespace {
+
+struct LanguageCode {
+    const char* code;
+    int id;
+};
+
+constexpr LanguageCode Languages[] = {
+    {"ja", 0}, {"ja-JP", 0}, {"en", 1}, {"en-US", 1}, {"fr", 2}, {"fr-FR", 2}, {"es", 3}, {"es-ES", 3},
+    {"de", 4}, {"de-DE", 4}, {"it", 5}, {"it-IT", 5}, {"nl", 6}, {"nl-NL", 6}, {"pt", 7}, {"pt-PT", 7},
+    {"ru", 8}, {"ru-RU", 8}, {"ko", 9}, {"ko-KR", 9}, {"zh-TW", 10}, {"zh-Hant", 10}, {"zh", 11}, {"zh-CN", 11},
+    {"zh-Hans", 11}, {"fi", 12}, {"fi-FI", 12}, {"sv", 13}, {"sv-SE", 13}, {"da", 14}, {"da-DK", 14},
+    {"nb", 15}, {"no", 15}, {"nb-NO", 15}, {"pl", 16}, {"pl-PL", 16}, {"pt-BR", 17}, {"en-GB", 18},
+    {"tr", 19}, {"tr-TR", 19}, {"es-419", 20}, {"es-LA", 20}, {"ar", 21}, {"fr-CA", 22}, {"cs", 23},
+    {"cs-CZ", 23}, {"hu", 24}, {"hu-HU", 24}, {"el", 25}, {"el-GR", 25}, {"ro", 26}, {"ro-RO", 26},
+    {"th", 27}, {"th-TH", 27}, {"vi", 28}, {"vi-VN", 28}, {"id", 29}, {"id-ID", 29}, {"uk", 30}, {"uk-UA", 30},
+};
+
+bool SameCode(const char* left, const char* right) {
+    for (; *left != '\0' && *right != '\0'; ++left, ++right) {
+        const char a = *left == '_' ? '-' : (*left >= 'A' && *left <= 'Z' ? static_cast<char>(*left - 'A' + 'a') : *left);
+        const char b = *right >= 'A' && *right <= 'Z' ? static_cast<char>(*right - 'A' + 'a') : *right;
+        if (a != b) return false;
+    }
+    return *left == '\0' && *right == '\0';
+}
+
+int SystemLanguage() {
+    const char* value = std::getenv("ANYPS5_LANGUAGE");
+    if (value == nullptr || *value == '\0') return SYSTEM_SERVICE_PARAM_LANG_ENGLISH_US;
+    for (const auto& language : Languages) {
+        if (SameCode(value, language.code)) return language.id;
+    }
+    char* end = nullptr;
+    const long id = std::strtol(value, &end, 10);
+    if (*end == '\0' && id >= 0 && id <= 30) return static_cast<int>(id);
+    throw std::runtime_error(std::string("ANYPS5_LANGUAGE: unknown language '") + value + "'");
+}
+
+}
 
 extern "C" {
 
@@ -68,7 +111,7 @@ int APS5_VABI sceSystemServiceParamGetInt(int paramId, int* value) {
   return SYSTEM_SERVICE_ERROR_PARAMETER;
  }
  switch (paramId) {
-  case SYSTEM_SERVICE_PARAM_ID_LANG: *value = SYSTEM_SERVICE_PARAM_LANG_ENGLISH_US; break;
+  case SYSTEM_SERVICE_PARAM_ID_LANG: *value = SystemLanguage(); break;
   case SYSTEM_SERVICE_PARAM_ID_DATE_FORMAT: *value = SYSTEM_SERVICE_PARAM_DATE_FORMAT_DDMMYYYY; break;
   case SYSTEM_SERVICE_PARAM_ID_TIME_FORMAT: *value = SYSTEM_SERVICE_PARAM_TIME_FORMAT_24HOUR; break;
   case SYSTEM_SERVICE_PARAM_ID_TIME_ZONE: *value = 0; break;

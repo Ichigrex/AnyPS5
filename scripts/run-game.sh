@@ -5,6 +5,7 @@
 #   --catch-throw  avec --gdb : s'arrête sur chaque std::runtime_error levée
 #   --relink       force la reconversion
 #   --prepare-only convertit et prépare le dossier sans lancer le jeu
+#   --lang <code>  langue système du jeu (fr, fr-CA, en-GB, ja...) ; défaut : anglais US
 #   --no-check     ne lance pas le diagnostic des imports (scripts/check-game.py)
 #   --out <dir>    dossier de sortie (défaut : games/<nom_du_jeu>)
 #   --build <dir>  dossier de build (défaut : build/current)
@@ -28,16 +29,17 @@ while [[ $# -gt 0 ]]; do
         --relink) RELINK=1 ;;
         --prepare-only) PREPARE=1 ;;
         --no-check) CHECK=0 ;;
+        --lang) export ANYPS5_LANGUAGE="$2"; shift ;;
         --out) OUT="$2"; shift ;;
         --build) BUILD="$2"; shift ;;
-        -h|--help) sed -n 2,10p "$0"; exit 0 ;;
+        -h|--help) sed -n 2,11p "$0"; exit 0 ;;
         --) shift; GAME_ARGS=("$@"); break ;;
         *) INPUT="$1" ;;
     esac
     shift
 done
 
-[[ -n "$INPUT" ]] || { sed -n 2,10p "$0"; exit 1; }
+[[ -n "$INPUT" ]] || { sed -n 2,11p "$0"; exit 1; }
 if [[ -d "$INPUT" ]]; then
     GAME_DIR="$(cd "$INPUT" && pwd)"
     ELF="$GAME_DIR/eboot.bin"

@@ -7,6 +7,8 @@ Fork privé de [boykopovar/AnyPS5](https://github.com/boykopovar/AnyPS5). Le dé
 | Bibliothèque | Fonction            | Description                                                                                                                         |
 |--------------|---------------------|-------------------------------------------------------------------------------------------------------------------------------------|
 | libSceRtc    | `sceRtcCompareTick` | Compare deux ticks : renvoie `-1` (plus tôt), `0` (égal) ou `1` (plus tard), et `0x80B50002` (`INVALID_POINTER`) si un pointeur est nul. |
+| libkernel    | `sceKernelAioPollRequests` | État de plusieurs requêtes AIO sans attendre (version groupée de `sceKernelAioPollRequest`). |
+| libSceSystemService | langue système | Variable `ANYPS5_LANGUAGE` (`fr`, `fr-CA`, `en-GB`, `ja`, `de`… ou l'identifiant 0-30). Défaut : anglais US, comme l'upstream. |
 
 Le comportement de `sceRtcCompareTick` reprend la convention des bibliothèques RTC de la PSP et de la PS4 (et de fpPS4). Il n'a pas été vérifié sur une vraie console.
 
@@ -46,7 +48,7 @@ Le script :
 3. affiche le diagnostic des imports (voir ci-dessous) ;
 4. lance le jeu et enregistre la sortie dans `games/<nom_du_jeu>/last-run.log`.
 
-La conversion n'est refaite que si `eboot.bin` ou le relinker ont changé (`--relink` pour forcer). Les arguments après `--` sont passés au jeu. Variables utiles : `ANYPS5_GPU=<nom>` pour choisir le GPU, `ANYPS5_SYSTEM_FONTS=<dossier>` pour les polices (voir [USAGE.md](user/USAGE.md)).
+La conversion n'est refaite que si `eboot.bin` ou le relinker ont changé (`--relink` pour forcer). Les arguments après `--` sont passés au jeu. `--lang fr` lance le jeu en français (variable `ANYPS5_LANGUAGE`). Variables utiles : `ANYPS5_GPU=<nom>` pour choisir le GPU, `ANYPS5_SYSTEM_FONTS=<dossier>` pour les polices (voir [USAGE.md](user/USAGE.md)).
 
 ## Diagnostiquer un jeu avant de le lancer
 
