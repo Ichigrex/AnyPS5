@@ -43,9 +43,29 @@ scripts/run-game.sh /chemin/vers/PPSA01234
 Le script :
 1. convertit `eboot.bin` avec le relinker (ajoute `--to-intel` automatiquement sur un processeur Intel) ;
 2. prépare `games/<nom_du_jeu>/` : `app.elf`, `libs/` (lien vers les `.prx` compilés), `app0/` (liens vers les fichiers du jeu, sans copie) ;
-3. lance le jeu et enregistre la sortie dans `games/<nom_du_jeu>/last-run.log`.
+3. affiche le diagnostic des imports (voir ci-dessous) ;
+4. lance le jeu et enregistre la sortie dans `games/<nom_du_jeu>/last-run.log`.
 
 La conversion n'est refaite que si `eboot.bin` ou le relinker ont changé (`--relink` pour forcer). Les arguments après `--` sont passés au jeu. Variables utiles : `ANYPS5_GPU=<nom>` pour choisir le GPU, `ANYPS5_SYSTEM_FONTS=<dossier>` pour les polices (voir [USAGE.md](user/USAGE.md)).
+
+## Diagnostiquer un jeu avant de le lancer
+
+```sh
+scripts/check-game.py /chemin/vers/PPSA01234            # résumé + liste des problèmes
+scripts/check-game.py /chemin/vers/PPSA01234 --names    # nom des fonctions absentes (télécharge la base de NID)
+scripts/check-game.py /chemin/vers/PPSA01234 --json     # pour un autre script
+```
+
+Chaque fonction système importée par `eboot.bin` est classée :
+
+| État        | Conséquence                                                              |
+|-------------|---------------------------------------------------------------------------|
+| absente     | le jeu refuse de démarrer : il faut l'ajouter dans `core/libs/prx`         |
+| bouchon     | erreur (`std::runtime_error`) dès que le jeu l'appelle                     |
+| partielle   | erreur seulement dans certains cas (un `if` avant `NotImplemented`)        |
+| implémentée | OK                                                                        |
+
+Le fichier source de chaque bouchon est indiqué : c'est la liste de travail pour faire tourner le jeu. `run-game.sh` lance ce diagnostic automatiquement (résultat complet dans `games/<nom_du_jeu>/check.txt`, `--no-check` pour le désactiver). Limite : seuls les imports de `eboot.bin` sont analysés, pas ceux des modules de `sce_module/`.
 
 ## Déboguer
 
@@ -73,13 +93,20 @@ g++ -std=c++20 -O2 -Icore/libs core/libs/tests/GuestRtc.cpp -L/tmp/rtc -lSceRtc 
 
 ## Rester à jour avec l'upstream
 
+Automatique : la GitHub Action `Sync upstream` (`.github/workflows/sync-upstream.yml`) fusionne chaque jour `boykopovar/AnyPS5` `main` dans `dev`. Elle peut aussi être lancée à la main depuis l'onglet *Actions* du fork. En cas de conflit elle échoue sans rien pousser : il faut alors fusionner en local.
+
+En local :
+
 ```sh
-git remote add upstream https://github.com/boykopovar/AnyPS5.git
-git fetch upstream main
-git checkout dev
-git merge upstream/main
-git push origin dev
+scripts/sync-upstream.sh          # fusionne upstream/main dans dev
+scripts/sync-upstream.sh --push   # et pousse sur le fork
+scripts/build.sh                  # puis recompiler
 ```
+
+## Problèmes connus
+
+- `guest_sce_net` échoue sur une machine sans IPv6 (pas de `/proc/net/if_inet6`) : le test crée un socket IPv6. Ce n'est pas un bug du code. Les 460 autres tests passent (build `dev`, Ubuntu 24.04, GCC 13).
+- Le relinker ne crée pas le dossier de sortie : il doit exister avant la conversion (`run-game.sh` s'en charge).
 
 ## Pistes pour la suite
 

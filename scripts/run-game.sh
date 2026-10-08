@@ -5,6 +5,7 @@
 #   --catch-throw  avec --gdb : s'arrête sur chaque std::runtime_error levée
 #   --relink       force la reconversion
 #   --prepare-only convertit et prépare le dossier sans lancer le jeu
+#   --no-check     ne lance pas le diagnostic des imports (scripts/check-game.py)
 #   --out <dir>    dossier de sortie (défaut : games/<nom_du_jeu>)
 #   --build <dir>  dossier de build (défaut : build/current)
 set -euo pipefail
@@ -15,6 +16,7 @@ GDB=0
 CATCH=0
 RELINK=0
 PREPARE=0
+CHECK=1
 OUT=""
 INPUT=""
 GAME_ARGS=()
@@ -25,16 +27,17 @@ while [[ $# -gt 0 ]]; do
         --catch-throw) CATCH=1 ;;
         --relink) RELINK=1 ;;
         --prepare-only) PREPARE=1 ;;
+        --no-check) CHECK=0 ;;
         --out) OUT="$2"; shift ;;
         --build) BUILD="$2"; shift ;;
-        -h|--help) sed -n 2,9p "$0"; exit 0 ;;
+        -h|--help) sed -n 2,10p "$0"; exit 0 ;;
         --) shift; GAME_ARGS=("$@"); break ;;
         *) INPUT="$1" ;;
     esac
     shift
 done
 
-[[ -n "$INPUT" ]] || { sed -n 2,9p "$0"; exit 1; }
+[[ -n "$INPUT" ]] || { sed -n 2,10p "$0"; exit 1; }
 if [[ -d "$INPUT" ]]; then
     GAME_DIR="$(cd "$INPUT" && pwd)"
     ELF="$GAME_DIR/eboot.bin"
@@ -72,6 +75,12 @@ if [[ $RELINK -eq 1 || ! -f "$APP" || "$ELF" -nt "$APP" || "$RELINKER" -nt "$APP
     echo "Conversion : $ELF -> $APP ${FLAGS[*]:-}"
     "$RELINKER" "${FLAGS[@]}" "$ELF" "$APP"
     chmod +x "$APP"
+fi
+
+if [[ $CHECK -eq 1 ]] && command -v python3 >/dev/null; then
+    python3 "$ROOT/scripts/check-game.py" "$ELF" --build "$BUILD" > "$OUT/check.txt" 2>&1 || true
+    sed -n 2,8p "$OUT/check.txt"
+    echo "  (détail : $OUT/check.txt)"
 fi
 
 [[ $PREPARE -eq 1 ]] && { echo "Prêt : $APP"; exit 0; }
