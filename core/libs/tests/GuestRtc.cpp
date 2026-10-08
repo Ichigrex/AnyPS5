@@ -17,6 +17,7 @@ int APS5_VABI sceRtcGetTickResolution(void);
 int APS5_VABI sceRtcGetTick(const RtcDateTime*, RtcTick*);
 int APS5_VABI sceRtcSetTick(RtcDateTime*, const RtcTick*);
 int APS5_VABI sceRtcGetCurrentTick(RtcTick*);
+int APS5_VABI sceRtcCompareTick(const RtcTick*, const RtcTick*);
 int APS5_VABI sceRtcConvertUtcToLocalTime(const RtcTick*, RtcTick*);
 int APS5_VABI sceRtcConvertLocalTimeToUtc(const RtcTick*, RtcTick*);
 int APS5_VABI sceRtcGetTime_t(const RtcDateTime*, std::int64_t*);
@@ -75,6 +76,14 @@ int main() {
     Require(sceRtcGetDaysInMonth(2024, 13) == invalidMonth);
     Require(sceRtcGetDayOfWeek(1, 1, 1) == 1 && sceRtcGetDayOfWeek(2026, 9, 26) == 6);
     Require(sceRtcGetDayOfWeek(2023, 2, 29) == invalidDay);
+
+    const RtcTick earlier{unixEpochTick};
+    const RtcTick later{maxTick};
+    Require(sceRtcCompareTick(&earlier, &later) == -1);
+    Require(sceRtcCompareTick(&later, &earlier) == 1);
+    Require(sceRtcCompareTick(&earlier, &earlier) == 0);
+    Require(sceRtcCompareTick(nullptr, &later) == invalidPointer);
+    Require(sceRtcCompareTick(&earlier, nullptr) == invalidPointer);
 
     RtcDateTime leapDay{2024, 2, 29, 12, 34, 56, 789000};
     Require(sceRtcCheckValid(&leapDay) == 0);

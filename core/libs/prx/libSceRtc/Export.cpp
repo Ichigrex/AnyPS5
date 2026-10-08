@@ -349,6 +349,12 @@ int APS5_VABI sceRtcSetTick(RtcDateTime* time, const RtcTick* tick) {
     return 0;
 }
 
+int APS5_VABI sceRtcCompareTick(const RtcTick* tick1, const RtcTick* tick2) {
+    if (!tick1 || !tick2) return SCE_RTC_ERROR_INVALID_POINTER;
+    if (tick1->tick < tick2->tick) return -1;
+    return tick1->tick > tick2->tick ? 1 : 0;
+}
+
 int APS5_VABI sceRtcGetCurrentTick(RtcTick* tick) {
     if (!tick) return SCE_RTC_ERROR_INVALID_POINTER;
     tick->tick = currentTick();
