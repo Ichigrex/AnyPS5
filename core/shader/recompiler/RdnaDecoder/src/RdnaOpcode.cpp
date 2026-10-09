@@ -623,6 +623,9 @@ bool IsVectorAluOpcode(RdnaOpcode opcode) {
         case RdnaOpcode::VInterpP1F32:
         case RdnaOpcode::VInterpP2F32:
         case RdnaOpcode::VInterpMovF32:
+        case RdnaOpcode::VInterpP1llF16:
+        case RdnaOpcode::VInterpP1lvF16:
+        case RdnaOpcode::VInterpP2F16:
             return true;
         default:
             return false;
@@ -823,6 +826,22 @@ bool IsImageOpcode(RdnaOpcode opcode) {
         case RdnaOpcode::ImageStoreMip:
         case RdnaOpcode::ImageStorePck:
         case RdnaOpcode::ImageStoreMipPck:
+        case RdnaOpcode::ImageLoadBy2:
+        case RdnaOpcode::ImageLoadBy4:
+        case RdnaOpcode::ImageLoadMipBy2:
+        case RdnaOpcode::ImageLoadMipBy4:
+        case RdnaOpcode::ImageStoreBy2:
+        case RdnaOpcode::ImageStoreBy4:
+        case RdnaOpcode::ImageStoreMipBy2:
+        case RdnaOpcode::ImageStoreMipBy4:
+        case RdnaOpcode::ImageLoadPck2:
+        case RdnaOpcode::ImageLoadPck4:
+        case RdnaOpcode::ImageLoadMipPck2:
+        case RdnaOpcode::ImageLoadMipPck4:
+        case RdnaOpcode::ImageStorePck2:
+        case RdnaOpcode::ImageStorePck4:
+        case RdnaOpcode::ImageStoreMipPck2:
+        case RdnaOpcode::ImageStoreMipPck4:
         case RdnaOpcode::ImageMsaaLoad:
         case RdnaOpcode::ImageAtomicSwap:
         case RdnaOpcode::ImageAtomicAdd:

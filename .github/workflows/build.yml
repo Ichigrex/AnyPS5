@@ -96,7 +96,7 @@ jobs:
       - uses: hendrikmuhs/ccache-action@v1.2.24
         with:
           key: linux
-          save: ${{ github.event_name == 'push' }}
+          save: false
           evict-old-files: job
       - name: Install lavapipe for the GPU execution tests
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libvulkan1 mesa-vulkan-drivers
@@ -105,7 +105,13 @@ jobs:
         run: python3 tools/check_test_registration.py build
       - run: cmake --build build
       - run: cmake --build build --target libs
-      - run: ctest --test-dir build --output-on-failure --timeout 120 --repeat until-fail:3 --parallel 4 --output-log ctest.log
+      - name: Save the compiler cache before the tests
+        if: github.event_name == 'push'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ github.workspace }}/.ccache
+          key: ccache-linux-${{ github.run_id }}-${{ github.run_attempt }}
+      - run: ctest --test-dir build --output-on-failure --timeout 120 ${{ github.event_name == 'push' && '--repeat until-fail:3' || '' }} --parallel 4 --output-log ctest.log
         env:
           ANYPS5_REQUIRE_VULKAN: 1
           GALLIUM_OVERRIDE_CPU_CAPS: avx
@@ -146,7 +152,7 @@ jobs:
       - uses: hendrikmuhs/ccache-action@v1.2.24
         with:
           key: windows
-          save: ${{ github.event_name == 'push' }}
+          save: false
           evict-old-files: job
       - shell: cmd
         run: cmake -S . -B build %CONFIGURE%
@@ -157,8 +163,14 @@ jobs:
         run: cmake --build build
       - shell: cmd
         run: cmake --build build --target libs
+      - name: Save the compiler cache before the tests
+        if: github.event_name == 'push'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ github.workspace }}\.ccache
+          key: ccache-windows-${{ github.run_id }}-${{ github.run_attempt }}
       - shell: cmd
-        run: ctest --test-dir build --output-on-failure --timeout 120 --repeat until-fail:3 --parallel 4 --output-log ctest.log
+        run: ctest --test-dir build --output-on-failure --timeout 120 ${{ github.event_name == 'push' && '--repeat until-fail:3' || '' }} --parallel 4 --output-log ctest.log
       - name: Report tests slower than 30 s
         if: ${{ !cancelled() }}
         shell: bash
