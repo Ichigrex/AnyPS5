@@ -15,7 +15,7 @@ if [[ $NEW -eq 0 ]]; then
     exit 0
 fi
 echo "$NEW nouveaux commits :"
-git log --oneline --merges dev..upstream/main | head -30
+git log --oneline --merges -n 30 dev..upstream/main
 git merge --no-edit upstream/main
 git submodule update --init --recursive
 
