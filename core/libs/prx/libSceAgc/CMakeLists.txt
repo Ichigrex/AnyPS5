@@ -1,3 +1,5 @@
+include_directories(${CMAKE_SOURCE_DIR}/3rdparty/SPIRV-Headers/include)
+
 add_library(libSceAgc SHARED EXCLUDE_FROM_ALL
         ${CMAKE_CURRENT_SOURCE_DIR}/Unimplemented.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Acb/src/Control.cpp

@@ -1,3 +1,5 @@
+include_directories(${CMAKE_SOURCE_DIR}/3rdparty/SPIRV-Headers/include)
+
 function(ensure_agc_glslang)
     if(TARGET glslang AND TARGET SPIRV AND TARGET glslang-standalone)
         return()

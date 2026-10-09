@@ -111,10 +111,27 @@ scripts/build.sh                  # puis recompiler
 
 ## Problèmes connus
 
-- `guest_sce_net` échoue sur une machine sans IPv6 (pas de `/proc/net/if_inet6`) : le test crée un socket IPv6. Ce n'est pas un bug du code. Tous les autres tests passent (482 sur 483 au 8 octobre 2026, build `dev`, Ubuntu 24.04, GCC 13).
+- Upstream `ee9033f9` (8 octobre 2026) inclut `spirv/unified1/spirv.hpp` dans `libSceAgcDriver/tests/execution/VulkanTestDevice.hpp` sans ajouter `3rdparty/SPIRV-Headers/include` aux cibles de test : la compilation échoue. Corrigé dans le fork par un `include_directories` en tête de `libSceAgc/CMakeLists.txt` et `libSceAgcDriver/CMakeLists.txt` ; à retirer quand l'upstream le corrige.
+
+- `guest_sce_net` échoue sur une machine sans IPv6 (pas de `/proc/net/if_inet6`) : le test crée un socket IPv6. Ce n'est pas un bug du code. Tous les autres tests passent (503 sur 504 au 9 octobre 2026, build `dev`, Ubuntu 24.04, GCC 13).
 - Le relinker ne crée pas le dossier de sortie : il doit exister avant la conversion (`run-game.sh` s'en charge).
 
+## Releases
+
+```sh
+scripts/release.sh --dry-run   # affiche le tag qui serait créé
+scripts/release.sh             # build release + tests, puis crée et pousse le tag
+scripts/release.sh --local     # idem, et construit aussi l'archive Linux dans dist/
+```
+
+Les tags du fork sont datés (`v2026.10.09-fork`, puis `.2`, `.3`… le même jour) pour ne jamais entrer en collision avec ceux de l'upstream (`v0.1.x`). Le tag déclenche `.github/workflows/release.yml` (workflow de l'upstream) : build Linux et Windows, tests, puis publication dans l'onglet *Releases* du relinker (`relinker-<tag>`, `relinker-<tag>.exe`), des bibliothèques (`prx-linux-<tag>.tar.gz/.zip`, `prx-windows-<tag>.tar.gz/.zip`) et de la doc utilisateur. Les Actions doivent être activées sur le fork ; contrairement à la synchro planifiée, ce workflow fonctionne depuis `dev`.
+
+Pour utiliser une release : extraire `prx-<os>-<tag>` (il contient `libs/`), placer le relinker à côté, puis suivre [USAGE.md](user/USAGE.md).
+
 ## Pistes pour la suite
+
+Les instructions de shader sont couvertes à 100 % côté upstream depuis le 9 octobre 2026 (1166/1166) ; les bibliothèques système sont à environ 85 %.
+
 
 Bibliothèques avec le plus de fonctions encore non implémentées (`NotImplemented_nid_no_patch`) :
 

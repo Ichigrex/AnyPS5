@@ -10,36 +10,82 @@
         "CMAKE_C_COMPILER": "gcc",
         "CMAKE_CXX_COMPILER": "g++",
         "BUILD_TESTING": "ON",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ANYPS5_ENABLE_SPIRV_TOOLS": "ON"
       }
     },
     {
       "name": "release",
       "inherits": "base",
       "displayName": "Release (jouer)",
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
     },
     {
       "name": "dev",
       "inherits": "base",
       "displayName": "RelWithDebInfo (rapide + symboles pour gdb)",
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
     },
     {
       "name": "debug",
       "inherits": "base",
       "displayName": "Debug (-O0, debug pas à pas, lent)",
-      "cacheVariables": { "CMAKE_BUILD_TYPE": "Debug" }
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
     }
   ],
   "buildPresets": [
-    { "name": "release", "configurePreset": "release", "targets": ["all", "libs"] },
-    { "name": "dev", "configurePreset": "dev", "targets": ["all", "libs"] },
-    { "name": "debug", "configurePreset": "debug", "targets": ["all", "libs"] }
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "targets": [
+        "all",
+        "libs"
+      ]
+    },
+    {
+      "name": "dev",
+      "configurePreset": "dev",
+      "targets": [
+        "all",
+        "libs"
+      ]
+    },
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "targets": [
+        "all",
+        "libs"
+      ]
+    }
   ],
   "testPresets": [
-    { "name": "release", "configurePreset": "release", "output": { "outputOnFailure": true } },
-    { "name": "dev", "configurePreset": "dev", "output": { "outputOnFailure": true } },
-    { "name": "debug", "configurePreset": "debug", "output": { "outputOnFailure": true } }
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "dev",
+      "configurePreset": "dev",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
   ]
 }
